@@ -5,6 +5,8 @@ const {log, biglog, errorlog, colorize} = require("./out");
 const model = require('./model');
 
 
+var figlet = require('figlet');
+var chalk  = require('chalk');
 /**
  * Muestra la ayuda.
  *
@@ -144,16 +146,60 @@ exports.editCmd = (rl, id) => {
 };
 
 
-/**
+/**class_name.prototype.method_name = function(first_argument) {
+    // body...
+};
  * Prueba un quiz, es decir, hace una pregunta del modelo a la que debemos contestar.
  *
  * @param rl Objeto readline usado para implementar el CLI.
  * @param id Clave del quiz a probar.
  */
 exports.testCmd = (rl, id) => {
-    log('Probar el quiz indicado.', 'red');
-    rl.prompt();
-};
+   // log('Probar el quiz indicado.', 'red');
+   // rl.prompt();
+      if(typeof id === 'undefined'){
+             errorlog(`Falta el parámetro id.`);          
+             rl.prompt();
+} else{
+    try{
+         
+       const   quiz = model.getByIndex(id);
+ 
+               rl.question(colorize(quiz.question + '?'+' ',"red") ,resp => {
+                                     
+            if ( quiz.answer.toLowerCase().trim() === resp.toLowerCase().trim() ){  
+              
+              console.log(' Your answer is :' + 
+                chalk.green.bold(
+                        figlet.textSync( 'CORRECT' , {horizontalLayout: 'full'})
+                   
+                  )
+
+                ); 
+              
+            } else {
+              
+
+              console.log(' Your answer is :' + 
+                chalk.red.bold(
+                        figlet.textSync( 'INCORRECT' , {horizontalLayout: 'full'})
+                   
+                  )
+
+                ); 
+              
+              
+             }
+             rl.prompt();
+        
+ });
+     }catch(error){
+           errorlog(error.message);
+           rl.prompt();
+               }
+       }
+   };
+
 
 
 /**
@@ -163,9 +209,89 @@ exports.testCmd = (rl, id) => {
  * @param rl Objeto readline usado para implementar el CLI.
  */
 exports.playCmd = rl => {
-    log('Jugar.', 'red');
-    rl.prompt();
-};
+        
+  
+       
+      let score = 0;
+      const toBeResolved = [];
+      for(let id = 0;id<model.count();id++){
+            toBeResolved.push(id); 
+
+      }
+
+
+          
+          
+         const playone = () => {
+              if(toBeResolved.length > 0){
+              let pos = Math.floor( Math.random()*(toBeResolved.length));
+              let id = toBeResolved[pos];
+              toBeResolved.splice(pos,1); 
+            
+            //if(toBeResolved.length > 0){
+              /*log('No hay nada mas que preguntar. ' + 
+                  'Fin de juegos. Aciertos:'+score+
+                  chalk.green.bold(
+                  figlet.textSync( score , {horizontalLayout: 'full'})
+                   
+                  ));
+
+              
+              rl.prompt();*/
+              let quiz = model.getByIndex(id);
+
+            rl.question(colorize(quiz.question + '?'+' ',"red"), resp =>{
+                    if(resp.toLowerCase().trim() === quiz.answer.toLowerCase().trim()){
+                        score = score + 1;
+                        log('CORRECT -  Lleva ' + score + ' aciertos' );
+                        
+                        playone();
+                      }else{
+                        log('INCORRECT. Fin del juego.Aciertos:'+score+
+                         chalk.green.bold(
+                         figlet.textSync( score , {horizontalLayout: 'full'})
+                            
+                     ));
+                      rl.prompt();
+                        
+                       }
+                   });
+
+        }else{
+              
+             log('No hay nada mas que preguntar. ' + 
+                  'Fin de juegos. Aciertos:'+score+
+                  chalk.green.bold(
+                  figlet.textSync( score , {horizontalLayout: 'full'})
+                   
+                  ));
+                  rl.prompt();
+          /*  let quiz = model.getByIndex(id);
+
+            rl.question(colorize(quiz.question + '?'+' ',"red"), resp =>{
+                    if(resp.toLowerCase().trim() === quiz.answer.toLowerCase().trim()){
+                        score = score + 1;
+                        log('CORRECT -  Lleva ' + score + ' aciertos' );
+                        
+                        playone();
+                      }else{
+                        log('INCORRECT. Fin del juego.Aciertos:'+score+
+                         chalk.green.bold(
+                         figlet.textSync( score , {horizontalLayout: 'full'})
+                            
+                     ));
+                      rl.prompt();
+                        
+                       }
+                   });
+                }*/
+              }
+            }
+           playone();
+          };
+
+   
+
 
 
 /**
